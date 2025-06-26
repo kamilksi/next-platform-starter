@@ -1,4 +1,3 @@
-
 import { FC, ComponentProps } from 'react';
 import { Briefcase } from 'lucide-react';
 
@@ -11,6 +10,7 @@ export const translations = {
         section2Title: "2. Dobierz funkcjonalności",
         summaryTitle: "Podsumowanie wyceny",
         estimatedCost: "Szacowany koszt projektu",
+        estimatedHours: "Szacowany czas realizacji",
         netPriceInfo: "Netto. Ostateczna cena zależy od szczegółów.",
         selectedElements: "Wybrane elementy:",
         base: "Baza",
@@ -30,6 +30,7 @@ export const translations = {
         section2Title: "2. Select functionalities",
         summaryTitle: "Estimate Summary",
         estimatedCost: "Estimated project cost",
+        estimatedHours: "Estimated delivery time",
         netPriceInfo: "Net. The final price depends on the details.",
         selectedElements: "Selected elements:",
         base: "Base",

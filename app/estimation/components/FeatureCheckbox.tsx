@@ -1,4 +1,3 @@
-
 import { FC } from 'react';
 import { CheckCircle } from 'lucide-react';
 import { Feature, Price, Language } from '../lib/types';
@@ -17,7 +16,7 @@ export const FeatureCheckbox: FC<FeatureCheckboxProps> = ({ feature, isSelected,
             <p className="text-sm text-gray-400">{feature.description[language]}</p>
         </div>
         <div className="text-right flex-shrink-0">
-            <p className="font-bold text-gray-200 text-sm whitespace-nowrap">+ {feature.price.min.toLocaleString('pl-PL')} zł</p>
+            <p className="font-bold text-gray-200 text-sm whitespace-nowrap">+ {feature.price.min.toLocaleString('pl-PL')} - {feature.price.max.toLocaleString('pl-PL')} zł</p>
         </div>
     </div>
 );
