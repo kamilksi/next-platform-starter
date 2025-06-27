@@ -1,8 +1,16 @@
 import { Building, CheckCircle, Mail, MessageCircle, Phone, Send, User } from 'lucide-react';
-import { FC, useState, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { projectData } from '../lib/data';
 import { Feature, Language, Price, translations } from '../lib/types';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
+
+// Dynamically import HCaptcha to avoid SSR issues
+const HCaptcha = dynamic(() => import('@hcaptcha/react-hcaptcha'), {
+  ssr: false,
+  loading: () => <div className="h-20 bg-slate-700/50 rounded animate-pulse flex items-center justify-center">
+    <span className="text-gray-400">Loading verification...</span>
+  </div>
+});
 
 interface SummarySidebarProps {
     price: Price;

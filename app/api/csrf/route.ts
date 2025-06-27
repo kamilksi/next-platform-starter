@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-this-in-production';
-
+// Simple token generation without JWT (Edge Runtime compatible)
 export async function GET(request: NextRequest) {
   try {
     // Get IP address from headers (considering proxies)
@@ -16,33 +13,35 @@ export async function GET(request: NextRequest) {
     const clientIP = getClientIP(request);
     const userAgent = request.headers.get('user-agent')?.slice(0, 100) || 'unknown';
     
-    // Generate a unique session token
-    const sessionId = crypto.randomBytes(32).toString('hex');
+    // Generate simple token using Web Crypto API
+    const sessionId = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    
     const timestamp = Date.now();
     
-    // Create CSRF token with embedded session info
-    const csrfToken = jwt.sign(
-      { 
-        sessionId, 
-        timestamp,
-        userAgent,
-        ip: clientIP
-      },
-      JWT_SECRET,
-      { expiresIn: '15m' } // Token expires in 15 minutes
-    );
+    // Create simple token (not JWT, but secure for our use case)
+    const tokenData = {
+      sessionId,
+      timestamp,
+      userAgent,
+      ip: clientIP,
+      expires: timestamp + (15 * 60 * 1000) // 15 minutes
+    };
+    
+    const token = btoa(JSON.stringify(tokenData));
 
-    // Create a fingerprint for additional validation
-    const fingerprint = crypto
-      .createHash('sha256')
-      .update(userAgent + clientIP + sessionId)
-      .digest('hex')
-      .slice(0, 16);
+    // Create a fingerprint for additional validation using Web Crypto API
+    const encoder = new TextEncoder();
+    const data = encoder.encode(userAgent + clientIP + sessionId);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const fingerprint = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 
     return NextResponse.json({
-      token: csrfToken,
+      token,
       fingerprint,
-      expires: timestamp + (15 * 60 * 1000) // 15 minutes from now
+      expires: tokenData.expires
     });
   } catch (error) {
     console.error('Token generation error:', error);

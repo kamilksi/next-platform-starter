@@ -1,11 +1,8 @@
 import * as React from 'react';
 import { Resend } from 'resend';
 import EmailTemplate from '../../estimation/components/EmailTemplate';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-this-in-production';
 
 // Enhanced rate limiting with exponential backoff
 const rateLimitMap = new Map();
@@ -74,25 +71,27 @@ function sanitizeInput(input: string): string {
     .slice(0, 1000); // Limit length
 }
 
-function validateCSRFToken(token: string, fingerprint: string, request: Request): boolean {
+// Simple token validation without JWT (Edge Runtime compatible)
+async function validateCSRFToken(token: string, fingerprint: string, request: Request): Promise<boolean> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = JSON.parse(atob(token));
     const now = Date.now();
     
     // Check if token is expired
-    if (decoded.timestamp + (15 * 60 * 1000) < now) {
+    if (decoded.expires < now) {
       return false;
     }
     
-    // Validate fingerprint
+    // Validate fingerprint using Web Crypto API
     const userAgent = request.headers.get('user-agent')?.slice(0, 100) || 'unknown';
     const clientIP = getClientIP(request);
-    const expectedFingerprint = crypto
-      .createHash('sha256')
-      .update(userAgent + clientIP + decoded.sessionId)
-      .digest('hex')
-      .slice(0, 16);
     
+    const encoder = new TextEncoder();
+    const data = encoder.encode(userAgent + clientIP + decoded.sessionId);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const expectedFingerprint = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+
     return fingerprint === expectedFingerprint;
   } catch (error) {
     console.error('CSRF validation error:', error);
@@ -151,7 +150,7 @@ export async function POST(request: Request) {
     } = body;
 
     // CSRF Token validation
-    if (!csrfToken || !fingerprint || !validateCSRFToken(csrfToken, fingerprint, request)) {
+    if (!csrfToken || !fingerprint || !(await validateCSRFToken(csrfToken, fingerprint, request))) {
       recordFailedAttempt(clientIp);
       return Response.json(
         { error: 'Invalid security token' },

@@ -26,6 +26,8 @@
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4.0.15",
+        "@types/crypto-js": "^4.2.2",
+        "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "24.0.4",
         "@types/react": "19.1.8",
         "eslint": "8.57.1",
