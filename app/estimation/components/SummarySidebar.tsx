@@ -4,8 +4,8 @@ import dynamic from 'next/dynamic';
 import { projectData } from '../lib/data';
 import { Feature, Language, Price, translations } from '../lib/types';
 
-// Dynamically import HCaptcha to avoid SSR issues
-const HCaptcha = dynamic(() => import('@hcaptcha/react-hcaptcha'), {
+// Dynamically import Google reCAPTCHA to avoid SSR issues
+const ReCAPTCHA = dynamic(() => import('react-google-recaptcha'), {
   ssr: false,
   loading: () => <div className="h-20 bg-slate-700/50 rounded animate-pulse flex items-center justify-center">
     <span className="text-gray-400">Loading verification...</span>
@@ -280,12 +280,12 @@ export const SummarySidebar: FC<SummarySidebarProps> = ({ price, selectedFeature
                                 />
                             </div>
 
-                            {/* hCaptcha */}
+                            {/* Google reCAPTCHA */}
                             <div className="flex justify-center">
-                                <HCaptcha
-                                    sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001"}
-                                    onVerify={(token) => setCaptchaToken(token)}
-                                    onExpire={() => setCaptchaToken('')}
+                                <ReCAPTCHA
+                                    sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
+                                    onChange={(token) => setCaptchaToken(token || '')}
+                                    onExpired={() => setCaptchaToken('')}
                                     theme="dark"
                                 />
                             </div>

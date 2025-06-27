@@ -2,7 +2,14 @@ import * as React from 'react';
 import { Resend } from 'resend';
 import EmailTemplate from '../../estimation/components/EmailTemplate';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend only when API key is available
+const getResendClient = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY environment variable is not set');
+  }
+  return new Resend(apiKey);
+};
 
 // Enhanced rate limiting with exponential backoff
 const rateLimitMap = new Map();
@@ -111,6 +118,29 @@ function detectSuspiciousContent(data: any): boolean {
   return suspiciousPatterns.some(pattern => pattern.test(textToCheck));
 }
 
+// Google reCAPTCHA verification function
+async function verifyRecaptcha(token: string, remoteip?: string): Promise<boolean> {
+  try {
+    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        secret: process.env.RECAPTCHA_SECRET_KEY || '',
+        response: token,
+        ...(remoteip && { remoteip })
+      }),
+    });
+
+    const data = await response.json();
+    return data.success === true;
+  } catch (error) {
+    console.error('reCAPTCHA verification error:', error);
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     // Rate limiting
@@ -175,6 +205,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // CAPTCHA verification
+    if (!captchaToken || !(await verifyRecaptcha(captchaToken, clientIp))) {
+      recordFailedAttempt(clientIp);
+      return Response.json(
+        { error: 'CAPTCHA verification failed' },
+        { status: 400 }
+      );
+    }
+
     // Timing analysis - check if form was filled too quickly
     if (timestamp) {
       const submissionTime = Date.now();
@@ -194,6 +233,16 @@ export async function POST(request: Request) {
       return Response.json(
         { error: 'Content appears to be spam' },
         { status: 400 }
+      );
+    }
+
+    // reCAPTCHA verification
+    const recaptchaVerified = await verifyRecaptcha(captchaToken, clientIp);
+    if (!recaptchaVerified) {
+      recordFailedAttempt(clientIp);
+      return Response.json(
+        { error: 'reCAPTCHA verification failed' },
+        { status: 403 }
       );
     }
 
@@ -222,6 +271,7 @@ export async function POST(request: Request) {
     // Additional security: Log the attempt for monitoring
     console.log(`Email form submission from ${clientIp} at ${new Date().toISOString()}`);
 
+    const resend = getResendClient();
     const { data, error } = await resend.emails.send({
       from: 'Konfigurator <onboarding@resend.dev>',
       to: [process.env.RECIPIENT_EMAIL || 'delivered@resend.dev'],
