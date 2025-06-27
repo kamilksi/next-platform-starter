@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useMemo } from 'react';
-import { LanguageSwitcher } from './components/LanguageSwitcher';
+import { useMemo, useState } from 'react';
 import { FeatureCheckbox } from './components/FeatureCheckbox';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { SummarySidebar } from './components/SummarySidebar';
-import { translations, Language, Price } from './lib/types';
-import { projectData, featureCategories } from './lib/data';
+import { featureCategories, projectData } from './lib/data';
+import { Language, Price, translations } from './lib/types';
 
 export default function Page() {
     const [language, setLanguage] = useState<Language>('pl');
@@ -55,8 +55,8 @@ export default function Page() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {Object.entries(projectData).map(([key, { label, icon: Icon }]) => (
                                     <button key={key} onClick={() => { setProjectType(key); setSelectedFeatures({}); }}
-                                        className={`p-6 rounded-xl text-left transition-all duration-300 flex flex-col items-center justify-center space-y-3 relative overflow-hidden ${projectType === key ? 'bg-blue-600/80 ring-2 ring-blue-400 shadow-2xl shadow-blue-500/30' : 'bg-slate-800/60 ring-1 ring-white/10 hover:ring-white/20 hover:bg-slate-800'}`}>
-                                        <Icon className={`w-12 h-12 transition-colors ${projectType === key ? 'text-white' : 'text-blue-400'}`} />
+                                        className={`p-6 rounded-xl text-left transition-all duration-300 flex flex-col items-center justify-center space-y-3 relative overflow-hidden ${projectType === key ? 'bg-violet-600/80 ring-2 ring-violet-400 shadow-2xl shadow-violet-500/30' : 'bg-slate-800/60 ring-1 ring-white/10 hover:ring-white/20 hover:bg-slate-800'}`}>
+                                        <Icon className={`w-12 h-12 transition-colors ${projectType === key ? 'text-white' : 'text-[#7439FA]'}`} />
                                         <span className="text-lg font-semibold text-center text-white">{label[language]}</span>
                                     </button>
                                 ))}
@@ -68,7 +68,7 @@ export default function Page() {
                                 {filteredFeatureCategories.map(category => (
                                     <div key={category.name[language]}>
                                         <div className="flex items-center space-x-3 mb-4">
-                                            <div className="p-2 bg-slate-800 rounded-lg ring-1 ring-white/10"><category.icon className="w-6 h-6 text-blue-400" /></div>
+                                            <div className="p-2 bg-slate-800 rounded-lg ring-1 ring-white/10"><category.icon className="w-6 h-6 text-[#7439FA]" /></div>
                                             <h3 className="text-xl font-semibold text-gray-200">{category.name[language]}</h3>
                                         </div>
                                         <div className="space-y-3">

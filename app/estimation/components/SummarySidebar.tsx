@@ -1,7 +1,7 @@
+import { Building, CheckCircle, Mail, MessageCircle, Phone, Send, User } from 'lucide-react';
 import { FC } from 'react';
-import { User, Mail, Phone, Building, MessageCircle, Send, CheckCircle } from 'lucide-react';
-import { Price, Language, Feature, translations } from '../lib/types';
 import { projectData } from '../lib/data';
+import { Feature, Language, Price, translations } from '../lib/types';
 
 interface SummarySidebarProps { price: Price; selectedFeatures: { [key: string]: Price }; projectType: string; featureDetails: Feature[]; language: Language; }
 export const SummarySidebar: FC<SummarySidebarProps> = ({ price, selectedFeatures, projectType, featureDetails, language }) => {
@@ -42,7 +42,7 @@ export const SummarySidebar: FC<SummarySidebarProps> = ({ price, selectedFeature
                         </li>
                         {selectedFeatureItems.map(feature => (
                             <li key={feature.id} className="flex justify-between items-center text-gray-300">
-                                <span className="flex items-center"><CheckCircle className="inline w-4 h-4 mr-2 text-blue-500 flex-shrink-0" /> {feature.name[language]}</span>
+                                <span className="flex items-center"><CheckCircle className="inline w-4 h-4 mr-2 text-[#7439FA] flex-shrink-0" /> {feature.name[language]}</span>
                                 <span className="font-medium ml-2">{feature.price.min.toLocaleString('pl-PL')} - {feature.price.max.toLocaleString('pl-PL')} zł</span>
                             </li>
                         ))}
@@ -61,14 +61,14 @@ export const SummarySidebar: FC<SummarySidebarProps> = ({ price, selectedFeature
                         ].map(({ placeholder, icon: Icon, type }) => (
                             <div key={placeholder} className="relative">
                                 <Icon className="absolute top-1/2 -translate-y-1/2 left-3 w-5 h-5 text-gray-500" />
-                                <input type={type} placeholder={placeholder} className="w-full pl-10 p-2.5 bg-slate-700/50 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" />
+                                <input type={type} placeholder={placeholder} className="w-full pl-10 p-2.5 bg-slate-700/50 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#7439FA] focus:border-[#7439FA] transition" />
                             </div>
                         ))}
                         <div className="relative">
                             <MessageCircle className="absolute top-3 left-3 w-5 h-5 text-gray-500" />
-                            <textarea placeholder={t.descriptionPlaceholder} rows={3} className="w-full pl-10 p-2.5 bg-slate-700/50 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></textarea>
+                            <textarea placeholder={t.descriptionPlaceholder} rows={3} className="w-full pl-10 p-2.5 bg-slate-700/50 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#7439FA] focus:border-[#7439FA] transition"></textarea>
                         </div>
-                        <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all duration-300 flex items-center justify-center space-x-2">
+                        <button type="submit" className="w-full bg-gradient-to-r bg-[#7439FA] text-white font-bold py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all duration-300 flex items-center justify-center space-x-2">
                             <span>{t.submitButton}</span>
                             <Send className="w-5 h-5" />
                         </button>
