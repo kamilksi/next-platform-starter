@@ -1,5 +1,5 @@
-import { FC, ComponentProps } from 'react';
 import { Briefcase } from 'lucide-react';
+import { ComponentProps, FC } from 'react';
 
 // --- I18N (Internationalization) Configuration ---
 export const translations = {
@@ -49,12 +49,16 @@ export type Language = keyof typeof translations;
 
 
 export type Price = { min: number; max: number };
+export type PricingStructure = {
+    web: Price;
+    mobile: Price;
+};
 export type TranslatableString = { [key in Language]: string };
 export type Feature = {
     id: string;
     name: TranslatableString;
     description: TranslatableString;
-    price: Price;
+    price: Price | PricingStructure;
     type?: 'web' | 'mobile';
 };
 export type LucideIcon = FC<ComponentProps<typeof Briefcase>>;

@@ -73,7 +73,7 @@ export default function Page() {
                                         </div>
                                         <div className="space-y-3">
                                             {category.features.map(feature => (
-                                                <FeatureCheckbox key={feature.id} feature={feature} isSelected={!!selectedFeatures[feature.id]} onToggle={handleFeatureToggle} language={language} />
+                                                <FeatureCheckbox key={feature.id} feature={feature} isSelected={!!selectedFeatures[feature.id]} onToggle={handleFeatureToggle} language={language} projectType={projectType} />
                                             ))}
                                         </div>
                                     </div>
