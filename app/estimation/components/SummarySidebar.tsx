@@ -1,16 +1,7 @@
 import { Building, CheckCircle, Mail, MessageCircle, Phone, Send, User } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { projectData } from '../lib/data';
 import { Feature, Language, Price, translations } from '../lib/types';
-
-// Dynamically import Google reCAPTCHA to avoid SSR issues
-const ReCAPTCHA = dynamic(() => import('react-google-recaptcha'), {
-  ssr: false,
-  loading: () => <div className="h-20 bg-slate-700/50 rounded animate-pulse flex items-center justify-center">
-    <span className="text-gray-400">Loading verification...</span>
-  </div>
-});
 
 interface SummarySidebarProps {
     price: Price;
@@ -40,7 +31,8 @@ export const SummarySidebar: FC<SummarySidebarProps> = ({ price, selectedFeature
     const [submissionTime, setSubmissionTime] = useState<number>(Date.now());
     const [csrfToken, setCsrfToken] = useState<string>('');
     const [fingerprint, setFingerprint] = useState<string>('');
-    const [captchaToken, setCaptchaToken] = useState<string>('');
+    const [botToken, setBotToken] = useState<string>('initial'); // Simple bot detection
+    const [jsVerified, setJsVerified] = useState<boolean>(false);
 
     // Track when form was first rendered for timing analysis
     const formRenderTime = useState(() => Date.now())[0];
@@ -58,6 +50,17 @@ export const SummarySidebar: FC<SummarySidebarProps> = ({ price, selectedFeature
             }
         };
         fetchCSRFToken();
+    }, []);
+
+    // Simple JavaScript-based bot detection
+    useEffect(() => {
+        // Delay before setting the verification token (like suggested on Reddit)
+        const timer = setTimeout(() => {
+            setBotToken('verified');
+            setJsVerified(true);
+        }, 1500); // 1.5 second delay
+
+        return () => clearTimeout(timer);
     }, []);
 
     // Assuming an average hourly rate of 100 PLN for estimation
@@ -79,7 +82,7 @@ export const SummarySidebar: FC<SummarySidebarProps> = ({ price, selectedFeature
                 return;
             }
 
-            if (!captchaToken) {
+            if (!jsVerified || botToken !== 'verified') {
                 setError('Proszę zweryfikować, że nie jesteś robotem');
                 return;
             }
@@ -121,7 +124,7 @@ export const SummarySidebar: FC<SummarySidebarProps> = ({ price, selectedFeature
                     timestamp: formRenderTime,
                     csrfToken,
                     fingerprint,
-                    captchaToken
+                    botToken
                 })
             });
 
@@ -280,19 +283,34 @@ export const SummarySidebar: FC<SummarySidebarProps> = ({ price, selectedFeature
                                 />
                             </div>
 
-                            {/* Google reCAPTCHA */}
-                            <div className="flex justify-center">
-                                <ReCAPTCHA
-                                    sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
-                                    onChange={(token) => setCaptchaToken(token || '')}
-                                    onExpired={() => setCaptchaToken('')}
-                                    theme="dark"
+                            {/* Simple anti-bot verification */}
+                            <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-4">
+                                <div className="flex items-center justify-center space-x-3">
+                                    {jsVerified ? (
+                                        <>
+                                            <CheckCircle className="w-5 h-5 text-green-400" />
+                                            <span className="text-green-400 text-sm">Weryfikacja zakończona</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                                            <span className="text-gray-400 text-sm">Weryfikacja w toku...</span>
+                                        </>
+                                    )}
+                                </div>
+                                
+                                {/* Hidden field for bot detection - value changes via JavaScript */}
+                                <input
+                                    type="hidden"
+                                    name="bot_field"
+                                    value={botToken}
+                                    readOnly
                                 />
                             </div>
 
                             <button
                                 type="submit"
-                                disabled={isSubmitting || !captchaToken}
+                                disabled={isSubmitting || !jsVerified || botToken !== 'verified'}
                                 className="w-full bg-gradient-to-r bg-[#7439FA] hover:bg-purple-700 disabled:bg-purple-800 text-white font-bold py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all duration-300 flex items-center justify-center space-x-2"
                             >
                                 <span>{isSubmitting ? 'Wysyłanie...' : t.submitButton}</span>

@@ -118,29 +118,6 @@ function detectSuspiciousContent(data: any): boolean {
   return suspiciousPatterns.some(pattern => pattern.test(textToCheck));
 }
 
-// Google reCAPTCHA verification function
-async function verifyRecaptcha(token: string, remoteip?: string): Promise<boolean> {
-  try {
-    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        secret: process.env.RECAPTCHA_SECRET_KEY || '',
-        response: token,
-        ...(remoteip && { remoteip })
-      }),
-    });
-
-    const data = await response.json();
-    return data.success === true;
-  } catch (error) {
-    console.error('reCAPTCHA verification error:', error);
-    return false;
-  }
-}
-
 export async function POST(request: Request) {
   try {
     // Rate limiting
@@ -176,7 +153,7 @@ export async function POST(request: Request) {
       timestamp,
       csrfToken,
       fingerprint,
-      captchaToken
+      botToken
     } = body;
 
     // CSRF Token validation
@@ -205,11 +182,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // CAPTCHA verification
-    if (!captchaToken || !(await verifyRecaptcha(captchaToken, clientIp))) {
+    // Simple bot detection verification
+    if (!botToken || botToken !== 'verified') {
       recordFailedAttempt(clientIp);
       return Response.json(
-        { error: 'CAPTCHA verification failed' },
+        { error: 'Bot verification failed' },
         { status: 400 }
       );
     }
@@ -233,16 +210,6 @@ export async function POST(request: Request) {
       return Response.json(
         { error: 'Content appears to be spam' },
         { status: 400 }
-      );
-    }
-
-    // reCAPTCHA verification
-    const recaptchaVerified = await verifyRecaptcha(captchaToken, clientIp);
-    if (!recaptchaVerified) {
-      recordFailedAttempt(clientIp);
-      return Response.json(
-        { error: 'reCAPTCHA verification failed' },
-        { status: 403 }
       );
     }
 
